@@ -4,35 +4,26 @@
 import requests
 import sys
 
-# Specify the base URL of the API
-base_url = "https://jsonplaceholder.typicode.com/"
 
-# Define a function to retrieve an employee's TODO list progress
-def get_employee_todo_progress(employee_id):
-    # Send a GET request to retrieve the user's information
-    user_response = requests.get(base_url + f"users/{employee_id}")
-    user = user_response.json()
-    employee_name = user["name"]
+"""Module"""
 
-    # Send a GET request to retrieve the user's TODO list
-    todo_response = requests.get(base_url + f"todos?userId={employee_id}")
-    todo_list = todo_response.json()
+if __name__ == '__main__':
+    employee_id = sys.argv[1]
+    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
+        .format(employee_id)
+    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
+        .format(employee_id)
 
-    # Calculate the number of completed and non-completed tasks
-    total_tasks = len(todo_list)
-    completed_tasks = [task for task in todo_list if task["completed"]]
-    num_completed_tasks = len(completed_tasks)
+    user_info = requests.request('GET', user_url).json()
+    todos_info = requests.request('GET', todos_url).json()
 
-    # Print the employee's TODO list progress in the required format
-    print(f"Employee {employee_name} is done with {num_completed_tasks}/{total_tasks} tasks:")
+    employee_name = user_info["name"]
+    task_completed = list(filter(lambda obj:
+                                 (obj["completed"] is True), todos_info))
+    number_of_done_tasks = len(task_completed)
+    total_number_of_tasks = len(todos_info)
 
-    # Print the titles of the completed tasks
-    for task in completed_tasks:
-        print(f"\t {task['title']}")
+    print("Employee {} is done with tasks({}/{}):".
+          format(employee_name, number_of_done_tasks, total_number_of_tasks))
 
-# Get the employee ID from the command line argument
-employee_id = int(sys.argv[1])
-
-# Call the function to retrieve the employee's TODO list progress
-get_employee_todo_progress(employee_id)
-
+    [print("\t " + task["title"]) for task in task_completed]
